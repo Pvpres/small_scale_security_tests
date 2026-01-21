@@ -45,12 +45,42 @@ app.get('/search', (req, res) => {
     res.send('<h1>Results for: ' + searchTerm + '</h1>');
 });
 
-// eval() on user input
+// Safe math expression evaluator
+function safeEvaluateMathExpression(expr) {
+    if (typeof expr !== 'string') {
+        throw new Error('Expression must be a string');
+    }
+    
+    const sanitized = expr.replace(/\s+/g, '');
+    
+    if (!/^[0-9+\-*/().]+$/.test(sanitized)) {
+        throw new Error('Invalid characters in expression');
+    }
+    
+    if (/[+\-*/]{2,}/.test(sanitized) || /^[*/]/.test(sanitized) || /[+\-*/]$/.test(sanitized)) {
+        throw new Error('Invalid operator sequence');
+    }
+    
+    let parenCount = 0;
+    for (const char of sanitized) {
+        if (char === '(') parenCount++;
+        if (char === ')') parenCount--;
+        if (parenCount < 0) throw new Error('Mismatched parentheses');
+    }
+    if (parenCount !== 0) throw new Error('Mismatched parentheses');
+    
+    const safeFunction = new Function('return (' + sanitized + ')');
+    return safeFunction();
+}
+
 app.post('/calculate', (req, res) => {
     const expression = req.body.expr;
-    // Vulnerable: eval on user-controlled input
-    const result = eval(expression);
-    res.json({ result: result });
+    try {
+        const result = safeEvaluateMathExpression(expression);
+        res.json({ result: result });
+    } catch (error) {
+        res.status(400).json({ error: 'Invalid mathematical expression' });
+    }
 });
 
 // Hard-coded credentials
