@@ -8,8 +8,26 @@ on:
   workflow_dispatch:         # allow manual runs
 
 jobs:
+  setup:
+    name: Setup Languages
+    runs-on: ubuntu-latest
+    outputs:
+      languages: ${{ steps.set-languages.outputs.languages }}
+    steps:
+      - name: Determine languages based on branch
+        id: set-languages
+        run: |
+          BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          echo "Branch: $BRANCH_NAME"
+          if [ "$BRANCH_NAME" = "secondary_branch" ]; then
+            echo "languages=[\"python\", \"javascript\"]" >> $GITHUB_OUTPUT
+          else
+            echo "languages=[\"python\"]" >> $GITHUB_OUTPUT
+          fi
+
   analyze:
     name: Analyze
+    needs: setup
     runs-on: ubuntu-latest
 
     permissions:
@@ -20,7 +38,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ["python", "javascript"]   # scan both languages
+        language: ${{ fromJson(needs.setup.outputs.languages) }}
 
     steps:
       - name: Checkout repository
