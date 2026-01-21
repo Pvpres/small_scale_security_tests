@@ -38,11 +38,21 @@ app.get('/download', (req, res) => {
     res.sendFile(filepath);
 });
 
-// XSS vulnerability
+// XSS vulnerability - FIXED: HTML encode user input to prevent script injection
+function escapeHtml(text) {
+    if (text == null) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 app.get('/search', (req, res) => {
     const searchTerm = req.query.q;
-    // Vulnerable: reflecting user input without sanitization
-    res.send('<h1>Results for: ' + searchTerm + '</h1>');
+    // Fixed: HTML-encode user input before reflecting in response
+    res.send('<h1>Results for: ' + escapeHtml(searchTerm) + '</h1>');
 });
 
 // eval() on user input
