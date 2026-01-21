@@ -14,9 +14,8 @@ app.get('/user/:id', (req, res) => {
         database: 'mydb'
     });
     
-    // Vulnerable: unsanitized user input in SQL query
-    const query = "SELECT * FROM users WHERE id = " + req.params.id;
-    connection.query(query, (error, results) => {
+    const query = "SELECT * FROM users WHERE id = ?";
+    connection.query(query, [req.params.id], (error, results) => {
         res.send(results);
     });
 });
