@@ -1,6 +1,6 @@
 const express = require('express');
 const mysql = require('mysql');
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 const fs = require('fs');
 
 const app = express();
@@ -21,11 +21,18 @@ app.get('/user/:id', (req, res) => {
     });
 });
 
-// Command Injection vulnerability
+// Command Injection vulnerability - FIXED
 app.get('/ping', (req, res) => {
     const host = req.query.host;
-    // Vulnerable: user input directly in shell command
-    exec('ping -c 4 ' + host, (error, stdout) => {
+    
+    // Validate hostname format (alphanumeric, dots, hyphens only)
+    const hostnameRegex = /^[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]$|^[a-zA-Z0-9]$/;
+    if (!host || !hostnameRegex.test(host)) {
+        return res.status(400).send('Invalid hostname');
+    }
+    
+    // Secure: use execFile with arguments array to prevent shell injection
+    execFile('ping', ['-c', '4', host], (error, stdout) => {
         res.send(stdout);
     });
 });
