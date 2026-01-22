@@ -1,10 +1,13 @@
-import re
 import subprocess
+import re
 from flask import Flask, request
 
 app = Flask(__name__)
 
-HOSTNAME_PATTERN = re.compile(r'^[a-zA-Z0-9]([a-zA-Z0-9\-\.]{0,253}[a-zA-Z0-9])?$')
+HOSTNAME_PATTERN = re.compile(
+    r'^(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\.[A-Za-z0-9-]{1,63})*$|'
+    r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+)
 
 @app.route('/ping')
 def ping():
@@ -18,7 +21,7 @@ def ping():
     
     try:
         result = subprocess.run(
-            ['ping', '-c', '1', hostname],
+            ["ping", "-c", "1", hostname],
             capture_output=True,
             text=True,
             timeout=10
