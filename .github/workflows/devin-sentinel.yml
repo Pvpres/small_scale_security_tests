@@ -21,3 +21,5 @@ jobs:
           repo: ${{ github.event.repository.name }}
           github_token: ${{ secrets.GH_TOKEN }}
           devin_api_key: ${{ secrets.DEVIN_API_KEY }}
+          slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
+          slack_channel_id: C0AAGN32N7K
